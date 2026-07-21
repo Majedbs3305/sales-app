@@ -127,7 +127,7 @@ function LoginScreen({ onSuccess, theme, styles, mode, onToggleTheme }) {
         <div style={styles.loginIcon}>
           <Lock size={22} color={theme.accent} />
         </div>
-        <h1 style={styles.loginTitle}>دفتر البيع</h1>
+        <h1 style={styles.loginTitle}>دفتر عبدالله الغريب</h1>
         <p style={styles.loginSub}>أدخل كلمة مرور الفريق للمتابعة</p>
         <div style={styles.passwordWrap}>
           <input
@@ -390,7 +390,7 @@ function SalesApp({ token, onLogout, theme, styles, mode, onToggleTheme }) {
               <span style={styles.notebookSwitcherText}>{activeNotebook ? activeNotebook.name : 'اختر دفتر'}</span>
               <ChevronDown size={12} />
             </button>
-            <h1 style={styles.title}>دفتر البيع</h1>
+            <h1 style={styles.title}>دفتر عبدالله الغريب</h1>
           </div>
           <div style={styles.headerBtns}>
             <button style={styles.addBtn} onClick={() => setShowForm(true)}>
