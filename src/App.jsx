@@ -89,7 +89,7 @@ function LoginScreen({ onSuccess }) {
         <div style={styles.loginIcon}>
           <Lock size={22} color="#2F6F5E" />
         </div>
-        <h1 style={styles.loginTitle}>دفتر عبدالله الغريب</h1>
+        <h1 style={styles.loginTitle}>دفتر البيع</h1>
         <p style={styles.loginSub}>أدخل كلمة مرور الفريق للمتابعة</p>
         <div style={styles.passwordWrap}>
           <input
@@ -269,6 +269,28 @@ function SalesApp({ token, onLogout }) {
     }
   };
 
+  const handleDeleteNotebook = async (nb) => {
+    if (notebooks.length <= 1) {
+      window.alert('لازم يبقى دفتر واحد على الأقل، ما تقدر تحذف آخر دفتر');
+      return;
+    }
+    const confirmed = window.confirm(
+      `متأكد تبي تحذف دفتر "${nb.name}"؟\nكل العمليات المسجلة فيه بتنحذف نهائيًا ومافي رجعة.`
+    );
+    if (!confirmed) return;
+
+    const { error: err } = await supabase.from('notebooks').delete().eq('id', nb.id);
+    if (!err) {
+      const remaining = notebooks.filter((n) => n.id !== nb.id);
+      setNotebooks(remaining);
+      if (activeNotebookId === nb.id) {
+        setActiveNotebookId(remaining[0] ? remaining[0].id : null);
+      }
+    } else {
+      window.alert('صار خطأ بالحذف، حاول مرة ثانية');
+    }
+  };
+
   const totals = useMemo(() => {
     const totalAmount = entries.reduce((s, e) => s + Number(e.amount), 0);
     const totalQty = entries.reduce((s, e) => s + Number(e.qty), 0);
@@ -330,7 +352,7 @@ function SalesApp({ token, onLogout }) {
               <span style={styles.notebookSwitcherText}>{activeNotebook ? activeNotebook.name : 'اختر دفتر'}</span>
               <ChevronDown size={12} />
             </button>
-            <h1 style={styles.title}>دفتر عبدالله الغريب</h1>
+            <h1 style={styles.title}>دفتر البيع</h1>
           </div>
           <div style={styles.headerBtns}>
             <button style={styles.addBtn} onClick={() => setShowForm(true)}>
@@ -393,15 +415,26 @@ function SalesApp({ token, onLogout }) {
 
             <div style={styles.notebookList}>
               {notebooks.map((nb) => (
-                <button
+                <div
                   key={nb.id}
                   style={{ ...styles.notebookItem, ...(nb.id === activeNotebookId ? styles.notebookItemActive : {}) }}
-                  onClick={() => { setActiveNotebookId(nb.id); setShowNotebookPicker(false); }}
                 >
-                  <BookOpen size={16} />
-                  <span style={{ flex: 1 }}>{nb.name}</span>
-                  {nb.id === activeNotebookId && <span style={styles.notebookActiveDot} />}
-                </button>
+                  <button
+                    style={styles.notebookItemMain}
+                    onClick={() => { setActiveNotebookId(nb.id); setShowNotebookPicker(false); }}
+                  >
+                    <BookOpen size={16} />
+                    <span style={{ flex: 1, textAlign: 'right' }}>{nb.name}</span>
+                    {nb.id === activeNotebookId && <span style={styles.notebookActiveDot} />}
+                  </button>
+                  <button
+                    style={styles.notebookDeleteBtn}
+                    onClick={() => handleDeleteNotebook(nb)}
+                    aria-label={`حذف دفتر ${nb.name}`}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
               ))}
             </div>
 
@@ -675,8 +708,10 @@ const styles = {
   submitBtn: { width: '100%', background: '#2F6F5E', color: '#F5F1E9', border: 'none', borderRadius: 12, padding: '13px 0', fontSize: 15, fontWeight: 700, cursor: 'pointer', marginTop: 4 },
 
   notebookList: { display: 'flex', flexDirection: 'column', gap: 6 },
-  notebookItem: { display: 'flex', alignItems: 'center', gap: 10, width: '100%', textAlign: 'right', background: '#FFFFFF', border: '1px solid #EDE8DF', borderRadius: 12, padding: '12px 14px', fontSize: 14, fontWeight: 600, color: '#2B2621', cursor: 'pointer' },
+  notebookItem: { display: 'flex', alignItems: 'center', gap: 4, width: '100%', background: '#FFFFFF', border: '1px solid #EDE8DF', borderRadius: 12, padding: '4px', fontSize: 14, fontWeight: 600, color: '#2B2621' },
+  notebookItemMain: { display: 'flex', alignItems: 'center', gap: 10, flex: 1, background: 'transparent', border: 'none', padding: '8px 10px', fontSize: 14, fontWeight: 600, color: 'inherit', cursor: 'pointer', textAlign: 'right' },
   notebookItemActive: { border: '1px solid #2F6F5E', background: '#E7F2ED', color: '#2F6F5E' },
   notebookActiveDot: { width: 8, height: 8, borderRadius: '50%', background: '#2F6F5E' },
+  notebookDeleteBtn: { display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', color: '#C4938A', cursor: 'pointer', padding: 8, flexShrink: 0 },
   newNotebookBtn: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%', background: 'transparent', border: '1px dashed #D6C9BC', borderRadius: 12, padding: '12px 0', fontSize: 13, fontWeight: 600, color: '#6B6255', cursor: 'pointer', marginTop: 12 },
 };
